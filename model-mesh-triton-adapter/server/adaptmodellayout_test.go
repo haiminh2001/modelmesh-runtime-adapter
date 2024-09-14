@@ -194,7 +194,9 @@ func TestAdaptModelLayoutForRuntime(t *testing.T) {
 			if tt.SchemaPath != "" {
 				schemaFullPath = filepath.Join(tt.getSourceDir(), tt.SchemaPath)
 			}
-			err = adaptModelLayoutForRuntime(context.Background(), tritonRootModelDir, tt.ModelID, tt.ModelType, modelFullPath, schemaFullPath, log)
+			serving_config := triton.ModelServingConfig{}
+
+			err = adaptModelLayoutForRuntime(context.Background(), tritonRootModelDir, tt.ModelID, tt.ModelType, modelFullPath, schemaFullPath, log, &serving_config)
 
 			if tt.ExpectError && err == nil {
 				t.Fatal("ExpectError is true, but no error was returned")
@@ -233,7 +235,8 @@ func TestAdaptModelLayoutForRuntime_Multiple(t *testing.T) {
 		if tt.SchemaPath != "" {
 			schemaFullPath = filepath.Join(tt.getSourceDir(), tt.SchemaPath)
 		}
-		err = adaptModelLayoutForRuntime(ctx, tritonRootModelDir, tt.ModelID, tt.ModelType, modelFullPath, schemaFullPath, log)
+		serving_config := triton.ModelServingConfig{}
+		err = adaptModelLayoutForRuntime(ctx, tritonRootModelDir, tt.ModelID, tt.ModelType, modelFullPath, schemaFullPath, log, &serving_config)
 		if tt.ExpectError && err == nil {
 			t.Fatal("ExpectError is true, but no error was returned")
 		}
