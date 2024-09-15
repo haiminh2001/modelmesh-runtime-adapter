@@ -126,13 +126,26 @@ func (s *TritonAdapterServer) LoadModel(ctx context.Context, req *mmesh.LoadMode
 		return nil, status.Errorf(status.Code(tritonErr), "Failed to load Model due to Triton runtime error: %s", tritonErr)
 	}
 
-	size := util.CalcMemCapacity(req.ModelKey, s.AdapterConfig.DefaultModelSizeInBytes, s.AdapterConfig.ModelSizeMultiplier, log)
+	var size uint64
+	if overriden_size := serving_config.GetModelSize(); overriden_size != nil {
+		size = overriden_size.GetValue()
+	} else {
+		size = util.CalcMemCapacity(req.ModelKey, s.AdapterConfig.DefaultModelSizeInBytes, s.AdapterConfig.ModelSizeMultiplier, log)
+	}
+
+	var max_concurrency uint32
+
+	if overriden_max_concurrency := serving_config.GetMaxConcurrency(); overriden_max_concurrency != nil {
+		max_concurrency = overriden_max_concurrency.GetValue()
+	} else {
+		max_concurrency = uint32(s.AdapterConfig.LimitModelConcurrency)
+	}
 
 	log.Info("Triton model loaded")
 
 	return &mmesh.LoadModelResponse{
 		SizeInBytes:    size,
-		MaxConcurrency: uint32(s.AdapterConfig.LimitModelConcurrency),
+		MaxConcurrency: max_concurrency,
 	}, nil
 }
 

@@ -24,3 +24,20 @@ instance_group [
         kind: KIND_CPU
     }
 ]
+
+
+model_warmup [
+  {
+    inputs {
+      key: "INPUT__0"
+      value: {
+        data_type: TYPE_FP32
+        dims: [1, 28, 28]
+        zero_data: true
+      }
+    }
+    batch_size: 1
+    name: "warmup"
+    count: 200
+  }
+]
