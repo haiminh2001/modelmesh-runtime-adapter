@@ -191,6 +191,11 @@ func TestAdapter(t *testing.T) {
 		t.Errorf("Expected SizeInBytes to be %d but actual value was %d", expectedSize, resp3.SizeInBytes)
 	}
 
+	var expectedMaxConcurrency uint32 = 10
+	if resp3.MaxConcurrency != expectedMaxConcurrency {
+		t.Errorf("Expected MaxConcurrency to be %d but actual value was %d", expectedMaxConcurrency, resp3.MaxConcurrency)
+	}
+
 	t.Logf("runtime status: Model loaded, %v", resp3)
 
 	// UnloadModel

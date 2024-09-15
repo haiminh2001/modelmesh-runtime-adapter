@@ -1,6 +1,3 @@
-model_size: { 
-    value: 12345
-}
 max_concurrency: {
     value: 10
 }
