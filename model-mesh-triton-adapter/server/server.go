@@ -118,14 +118,6 @@ func (s *TritonAdapterServer) LoadModel(ctx context.Context, req *mmesh.LoadMode
 		return nil, status.Errorf(status.Code(err), "Failed to load Model due to adapter error: %s", err)
 	}
 
-	_, tritonErr := s.Client.RepositoryModelLoad(ctx, &triton.RepositoryModelLoadRequest{
-		ModelName: req.ModelId,
-	})
-	if tritonErr != nil {
-		log.Error(tritonErr, "Triton failed to load model")
-		return nil, status.Errorf(status.Code(tritonErr), "Failed to load Model due to Triton runtime error: %s", tritonErr)
-	}
-
 	var size uint64
 	if overriden_size := serving_config.GetModelSize(); overriden_size != nil {
 		size = overriden_size.GetValue()
@@ -139,6 +131,14 @@ func (s *TritonAdapterServer) LoadModel(ctx context.Context, req *mmesh.LoadMode
 		max_concurrency = overriden_max_concurrency.GetValue()
 	} else {
 		max_concurrency = uint32(s.AdapterConfig.LimitModelConcurrency)
+	}
+
+	_, tritonErr := s.Client.RepositoryModelLoad(ctx, &triton.RepositoryModelLoadRequest{
+		ModelName: req.ModelId,
+	})
+	if tritonErr != nil {
+		log.Error(tritonErr, "Triton failed to load model")
+		return nil, status.Errorf(status.Code(tritonErr), "Failed to load Model due to Triton runtime error: %s", tritonErr)
 	}
 
 	log.Info("Triton model loaded")
