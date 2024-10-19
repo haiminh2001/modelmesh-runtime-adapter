@@ -1,3 +1,6 @@
 max_concurrency: {
-    value: 10
+    value: 10,
+}
+model_size: {
+    value: 8000000000
 }
