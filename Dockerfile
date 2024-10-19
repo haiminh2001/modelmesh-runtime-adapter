@@ -88,7 +88,7 @@ ENV GOPATH $HOME/go
 ENV PATH $GOPATH/bin:$PATH
 RUN true \
     && go install google.golang.org/protobuf/cmd/protoc-gen-go@v${PROTOC_GEN_GO_VERSION} \
-                  google.golang.org/grpc/cmd/protoc-gen-go-grpc@v@{PROTOC_GEN_GO_GRPC_VERSION} \
+                  google.golang.org/grpc/cmd/protoc-gen-go-grpc@v${PROTOC_GEN_GO_GRPC_VERSION} \
     && protoc-gen-go --version \
     && true
 

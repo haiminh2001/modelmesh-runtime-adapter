@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"time"
 
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,6 +26,16 @@ import (
 	"google.golang.org/grpc"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
+
+var testdataDir = abs("server/testdata")
+
+func abs(path string) string {
+	a, err := filepath.Abs(path)
+	if err != nil {
+		panic("Could not get absolute path of " + path + " " + err.Error())
+	}
+	return a
+}
 
 // This client is currently not used for unit test, can be used to verify [ adapter -> runtime ]
 
@@ -58,7 +69,9 @@ func main() {
 
 	resp2, err := c.LoadModel(mmeshCtx, &mmesh.LoadModelRequest{
 		ModelId:   "tfmnist",
-		ModelPath: "empty",
+		ModelType: "TensorFlow",
+		ModelPath: filepath.Join(testdataDir, "tfmnist"),
+		ModelKey:  "{}",
 	})
 
 	if err != nil {
