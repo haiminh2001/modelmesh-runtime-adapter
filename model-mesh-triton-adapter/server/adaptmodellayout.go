@@ -279,6 +279,7 @@ func adaptNativeModelLayout(files []os.DirEntry, sourceModelIDDir, schemaPath, t
 			if err2 = processModelServingConfig(pbtxt, log, m); err2 != nil {
 				return err2
 			}
+			continue
 		}
 
 		// symlink all other entries

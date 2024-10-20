@@ -289,3 +289,15 @@ func (s *TritonAdapterServer) RuntimeStatus(ctx context.Context, req *mmesh.Runt
 	log.Info("runtimeStatus", "Status", runtimeStatus)
 	return runtimeStatus, nil
 }
+
+func (s *TritonAdapterServer) predictModelSize(ctx context.Context, req *mmesh.PredictModelSizeRequest) (*mmesh.PredictModelSizeResponse, error) {
+	log := s.Log.WithName("Predict Model Size").WithValues("model_id", req.ModelId)
+
+	var size uint64
+
+	size = util.CalcMemCapacity(req.ModelKey, s.AdapterConfig.DefaultModelSizeInBytes, s.AdapterConfig.ModelSizeMultiplier, log)
+
+	return &mmesh.PredictModelSizeResponse{
+		SizeInBytes: size,
+	}, nil
+}
