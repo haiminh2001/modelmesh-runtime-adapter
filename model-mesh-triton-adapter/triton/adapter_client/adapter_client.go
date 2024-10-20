@@ -71,7 +71,7 @@ func main() {
 		ModelId:   "tfmnist",
 		ModelType: "TensorFlow",
 		ModelPath: filepath.Join(testdataDir, "tfmnist"),
-		ModelKey:  `{"disk_size_bytes": 54321}`,
+		ModelKey:  `{"disk_size_bytes": 54321, "memory_size_bytes": 54321}`,
 	})
 
 	if err != nil {

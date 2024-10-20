@@ -23,9 +23,13 @@ import (
 )
 
 const (
-	modelTypeJSONKey      string = "model_type"
-	schemaPathJSONKey     string = "schema_path"
-	diskSizeBytesJSONKey  string = "disk_size_bytes"
+	modelTypeJSONKey  string = "model_type"
+	schemaPathJSONKey string = "schema_path"
+
+	// SizeInBytes will be considering in this order: memory size -> disk size * multiplier -> default value
+	memorySizeBytesJSONKey string = "memory_size_bytes"
+	diskSizeBytesJSONKey   string = "disk_size_bytes"
+
 	maxConcurrencyJSONKey string = "max_concurrency"
 )
 
@@ -77,16 +81,27 @@ func CalcMemCapacity(reqModelKey string, defaultSize int, multiplier float64, lo
 	if err := json.Unmarshal([]byte(reqModelKey), &modelKey); err != nil {
 		log.Info("'SizeInBytes' will be defaulted as LoadModelRequest.ModelKey value is not valid JSON", "SizeInBytes", size, "model_key", reqModelKey, "error", err)
 	} else {
-		if modelKey[diskSizeBytesJSONKey] != nil {
-			diskSize, ok := modelKey[diskSizeBytesJSONKey].(float64)
+		if modelKey[memorySizeBytesJSONKey] != nil {
+			memorySize, ok := modelKey[memorySizeBytesJSONKey].(float64)
 			if ok {
-				size = uint64(diskSize * multiplier)
-				log.Info("Setting 'SizeInBytes' to a multiple of model disk size", "SizeInBytes", size, "disk_size", diskSize, "multiplier", multiplier)
+				size = uint64(memorySize)
+				log.Info("Setting 'SizeInBytes' to the predefined memory size", "SizeInBytes", size)
 			} else {
-				log.Info("'SizeInBytes' will be defaulted as LoadModelRequest.ModelKey 'disk_size_bytes' value is not a number", "SizeInBytes", size, "model_key", modelKey)
+				log.Info("'SizeInBytes' will be defaulted as LoadModelRequest.ModelKey 'memory_size_bytes' value is not a number", "SizeInBytes", size, "model_key", modelKey)
 			}
 		} else {
-			log.Info("'SizeInBytes' will be defaulted as LoadModelRequest.ModelKey did not contain a value for 'disk_size_bytes'", "SizeInBytes", size, "model_key", modelKey)
+
+			if modelKey[diskSizeBytesJSONKey] != nil {
+				diskSize, ok := modelKey[diskSizeBytesJSONKey].(float64)
+				if ok {
+					size = uint64(diskSize * multiplier)
+					log.Info("Setting 'SizeInBytes' to a multiple of model disk size", "SizeInBytes", size, "disk_size", diskSize, "multiplier", multiplier)
+				} else {
+					log.Info("'SizeInBytes' will be defaulted as LoadModelRequest.ModelKey 'disk_size_bytes' value is not a number", "SizeInBytes", size, "model_key", modelKey)
+				}
+			} else {
+				log.Info("'SizeInBytes' will be defaulted as LoadModelRequest.ModelKey did not contain a value for 'disk_size_bytes'", "SizeInBytes", size, "model_key", modelKey)
+			}
 		}
 	}
 	return size

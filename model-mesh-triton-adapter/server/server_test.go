@@ -175,6 +175,7 @@ func TestAdapter(t *testing.T) {
 	mmeshCtx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
+	// predict model size with disk_size_bytes
 	resp3, err := c.PredictModelSize(mmeshCtx, &mmesh.PredictModelSizeRequest{
 		ModelId:   "tfmnist",
 		ModelPath: filepath.Join(testdataDir, "tfmnist"),
@@ -188,6 +189,46 @@ func TestAdapter(t *testing.T) {
 	}
 	expectedSizeFloat := 54321 * testModelSizeMultiplier
 	expectedSize := uint64(expectedSizeFloat)
+
+	if resp3.SizeInBytes != expectedSize {
+		t.Errorf("Expected SizeInBytes to be %d but actual value was %d", expectedSize, resp3.SizeInBytes)
+	}
+
+	// predict model size with memory_size_bytes
+
+	resp3, err = c.PredictModelSize(mmeshCtx, &mmesh.PredictModelSizeRequest{
+		ModelId:   "tfmnist",
+		ModelPath: filepath.Join(testdataDir, "tfmnist"),
+		ModelType: "invalid", // this will be ignored
+		ModelKey:  `{"storage_key": "myStorage", "bucket": "bucket1", "disk_size_bytes": 54321, "memory_size_bytes": 80000, "max_concurrency": 10, "model_type": {"name": "tensorflow", "version": "1.5"}}`,
+	})
+
+	if err != nil {
+		t.Fatalf("Failed to call MMesh: %v", err)
+
+	}
+
+	expectedSize = uint64(80000)
+
+	if resp3.SizeInBytes != expectedSize {
+		t.Errorf("Expected SizeInBytes to be %d but actual value was %d", expectedSize, resp3.SizeInBytes)
+	}
+
+	// predict model size with default value
+
+	resp3, err = c.PredictModelSize(mmeshCtx, &mmesh.PredictModelSizeRequest{
+		ModelId:   "tfmnist",
+		ModelPath: filepath.Join(testdataDir, "tfmnist"),
+		ModelType: "invalid", // this will be ignored
+		ModelKey:  `{"storage_key": "myStorage", "bucket": "bucket1", "max_concurrency": 10, "model_type": {"name": "tensorflow", "version": "1.5"}}`,
+	})
+
+	if err != nil {
+		t.Fatalf("Failed to call MMesh: %v", err)
+
+	}
+
+	expectedSize = uint64(1000000)
 
 	if resp3.SizeInBytes != expectedSize {
 		t.Errorf("Expected SizeInBytes to be %d but actual value was %d", expectedSize, resp3.SizeInBytes)

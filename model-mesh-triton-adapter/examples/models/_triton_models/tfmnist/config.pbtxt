@@ -1,33 +1,33 @@
-platform:  "tensorflow_graphdef"
-max_batch_size:  1
-input:  {
-  name:  "INPUT__0"
-  data_type:  TYPE_FP32
-  dims:  1
-  dims:  28
-  dims:  28
+platform: "tensorflow_graphdef"
+max_batch_size: 1
+input: {
+  name: "INPUT__0"
+  data_type: TYPE_FP32
+  dims: 1
+  dims: 28
+  dims: 28
 }
-output:  {
-  name:  "OUTPUT__0"
-  data_type:  TYPE_FP32
-  dims:  10
+output: {
+  name: "OUTPUT__0"
+  data_type: TYPE_FP32
+  dims: 10
 }
-instance_group:  {
-  kind:  KIND_CPU
-  count:  1
+instance_group: {
+  kind: KIND_CPU
+  count: 1
 }
-model_warmup:  {
-  name:  "warmup"
-  batch_size:  1
-  inputs:  {
-    key:  "INPUT__0"
-    value:  {
-      data_type:  TYPE_FP32
-      dims:  1
-      dims:  28
-      dims:  28
-      zero_data:  true
+model_warmup: {
+  name: "warmup"
+  batch_size: 1
+  inputs: {
+    key: "INPUT__0"
+    value: {
+      data_type: TYPE_FP32
+      dims: 1
+      dims: 28
+      dims: 28
+      zero_data: true
     }
   }
-  count:  200
+  count: 200
 }
