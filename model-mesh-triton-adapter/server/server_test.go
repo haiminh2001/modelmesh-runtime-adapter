@@ -175,7 +175,25 @@ func TestAdapter(t *testing.T) {
 	mmeshCtx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	resp3, err := c.LoadModel(mmeshCtx, &mmesh.LoadModelRequest{
+	resp3, err := c.PredictModelSize(mmeshCtx, &mmesh.PredictModelSizeRequest{
+		ModelId:   "tfmnist",
+		ModelPath: filepath.Join(testdataDir, "tfmnist"),
+		ModelType: "invalid", // this will be ignored
+		ModelKey:  `{"storage_key": "myStorage", "bucket": "bucket1", "disk_size_bytes": 54321, "max_concurrency": 10, "model_type": {"name": "tensorflow", "version": "1.5"}}`,
+	})
+
+	if err != nil {
+		t.Fatalf("Failed to call MMesh: %v", err)
+
+	}
+	expectedSizeFloat := 54321 * testModelSizeMultiplier
+	expectedSize := uint64(expectedSizeFloat)
+
+	if resp3.SizeInBytes != expectedSize {
+		t.Errorf("Expected SizeInBytes to be %d but actual value was %d", expectedSize, resp3.SizeInBytes)
+	}
+
+	resp4, err := c.LoadModel(mmeshCtx, &mmesh.LoadModelRequest{
 		ModelId:   "tfmnist",
 		ModelPath: filepath.Join(testdataDir, "tfmnist"),
 		ModelType: "invalid", // this will be ignored
@@ -185,24 +203,24 @@ func TestAdapter(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to call MMesh: %v", err)
 	}
-	expectedSizeFloat := 54321 * testModelSizeMultiplier
-	expectedSize := uint64(expectedSizeFloat)
-	if resp3.SizeInBytes != expectedSize {
-		t.Errorf("Expected SizeInBytes to be %d but actual value was %d", expectedSize, resp3.SizeInBytes)
+	expectedSizeFloat = 54321 * testModelSizeMultiplier
+	expectedSize = uint64(expectedSizeFloat)
+	if resp4.SizeInBytes != expectedSize {
+		t.Errorf("Expected SizeInBytes to be %d but actual value was %d", expectedSize, resp4.SizeInBytes)
 	}
 
 	var expectedMaxConcurrency uint32 = 10
-	if resp3.MaxConcurrency != expectedMaxConcurrency {
-		t.Errorf("Expected MaxConcurrency to be %d but actual value was %d", expectedMaxConcurrency, resp3.MaxConcurrency)
+	if resp4.MaxConcurrency != expectedMaxConcurrency {
+		t.Errorf("Expected MaxConcurrency to be %d but actual value was %d", expectedMaxConcurrency, resp4.MaxConcurrency)
 	}
 
-	t.Logf("runtime status: Model loaded, %v", resp3)
+	t.Logf("runtime status: Model loaded, %v", resp4)
 
 	// UnloadModel
 	mmeshCtx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	resp4, err := c.UnloadModel(mmeshCtx, &mmesh.UnloadModelRequest{
+	resp5, err := c.UnloadModel(mmeshCtx, &mmesh.UnloadModelRequest{
 		ModelId: "tfmnist",
 	})
 
@@ -210,7 +228,7 @@ func TestAdapter(t *testing.T) {
 		t.Fatalf("Failed to call MMesh: %v", err)
 	}
 
-	t.Logf("runtime status: Model unloaded, %v", resp4)
+	t.Logf("runtime status: Model unloaded, %v", resp5)
 
 	modelDir = filepath.Join(testdataDir, tritonModelSubdir, "tfmnist")
 	exists, err := util.FileExists(modelDir)

@@ -67,7 +67,21 @@ func main() {
 	mmeshCtx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	resp2, err := c.LoadModel(mmeshCtx, &mmesh.LoadModelRequest{
+	resp2, err := c.PredictModelSize(mmeshCtx, &mmesh.PredictModelSizeRequest{
+		ModelId:   "tfmnist",
+		ModelType: "TensorFlow",
+		ModelPath: filepath.Join(testdataDir, "tfmnist"),
+		ModelKey:  `{"disk_size_bytes": 54321}`,
+	})
+
+	if err != nil {
+		log.Error(err, "Failed to call MMesh")
+		os.Exit(1)
+	}
+
+	log.Info("predict model size: ", "response", resp2)
+
+	resp3, err := c.LoadModel(mmeshCtx, &mmesh.LoadModelRequest{
 		ModelId:   "tfmnist",
 		ModelType: "TensorFlow",
 		ModelPath: filepath.Join(testdataDir, "tfmnist"),
@@ -78,14 +92,14 @@ func main() {
 		log.Error(err, "Failed to call MMesh")
 		os.Exit(1)
 	}
-	log.Info("runtime status: Model loaded", "response", resp2)
+	log.Info("runtime status: Model loaded", "response", resp3)
 
 	time.Sleep(30 * time.Second)
 
 	mmeshCtx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	resp3, err := c.UnloadModel(mmeshCtx, &mmesh.UnloadModelRequest{
+	resp4, err := c.UnloadModel(mmeshCtx, &mmesh.UnloadModelRequest{
 		ModelId: "tfmnist",
 	})
 
@@ -94,5 +108,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Info("runtime status: Model unloaded", "response", resp3)
+	log.Info("runtime status: Model unloaded", "response", resp4)
 }
