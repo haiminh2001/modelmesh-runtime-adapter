@@ -108,10 +108,8 @@ func (s *TritonAdapterServer) LoadModel(ctx context.Context, req *mmesh.LoadMode
 		return nil, err
 	}
 
-	serving_config := triton.ModelServingConfig{}
-
 	// using the files downloaded by the puller, create a file layout that the runtime can understand and load from
-	err = adaptModelLayoutForRuntime(ctx, s.AdapterConfig.RootModelDir, req.ModelId, modelType, req.ModelPath, schemaPath, log, &serving_config)
+	err = adaptModelLayoutForRuntime(ctx, s.AdapterConfig.RootModelDir, req.ModelId, modelType, req.ModelPath, schemaPath, log)
 
 	if err != nil {
 		log.Error(err, "Failed to create model directory and load model")
@@ -119,19 +117,13 @@ func (s *TritonAdapterServer) LoadModel(ctx context.Context, req *mmesh.LoadMode
 	}
 
 	var size uint64
-	if overriden_size := serving_config.GetModelSize(); overriden_size != nil {
-		size = overriden_size.GetValue()
-	} else {
-		size = util.CalcMemCapacity(req.ModelKey, s.AdapterConfig.DefaultModelSizeInBytes, s.AdapterConfig.ModelSizeMultiplier, log)
-	}
+
+	size = util.CalcMemCapacity(req.ModelKey, s.AdapterConfig.DefaultModelSizeInBytes, s.AdapterConfig.ModelSizeMultiplier, log)
 
 	var max_concurrency uint32
 
-	if overriden_max_concurrency := serving_config.GetMaxConcurrency(); overriden_max_concurrency != nil {
-		max_concurrency = overriden_max_concurrency.GetValue()
-	} else {
-		max_concurrency = uint32(s.AdapterConfig.LimitModelConcurrency)
-	}
+	// TODO: get max concurrency from modelKey
+	max_concurrency = uint32(s.AdapterConfig.LimitModelConcurrency)
 
 	_, tritonErr := s.Client.RepositoryModelLoad(ctx, &triton.RepositoryModelLoadRequest{
 		ModelName: req.ModelId,

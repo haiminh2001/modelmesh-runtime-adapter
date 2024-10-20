@@ -56,7 +56,7 @@ var modelTypeToFileNameMapping = map[string]string{
 	"pytorch":    "model.pt",
 }
 
-func adaptModelLayoutForRuntime(ctx context.Context, rootModelDir, modelID, modelType, modelPath, schemaPath string, log logr.Logger, m *triton.ModelServingConfig) error {
+func adaptModelLayoutForRuntime(ctx context.Context, rootModelDir, modelID, modelType, modelPath, schemaPath string, log logr.Logger) error {
 	// convert to lower case and remove anything after the :
 	modelType = strings.ToLower(strings.Split(modelType, ":")[0])
 
@@ -106,7 +106,7 @@ func adaptModelLayoutForRuntime(ctx context.Context, rootModelDir, modelID, mode
 		}
 
 		if isTritonModelRepository(files) {
-			err = adaptNativeModelLayout(files, modelPath, schemaPath, tritonModelIDDir, log, m)
+			err = adaptNativeModelLayout(files, modelPath, schemaPath, tritonModelIDDir, log)
 		} else {
 			err = createTritonModelRepositoryFromDirectory(files, modelPath, schemaPath, modelType, tritonModelIDDir, log)
 		}
@@ -233,7 +233,7 @@ func createTritonModelRepositoryFromPath(modelPath, versionNumber, schemaPath, m
 // If the Triton specific config file exists, assume the model files has the
 // proper structure, but process the config.pbtxt to remove the `name` field.
 // All other files are symlinked to their source
-func adaptNativeModelLayout(files []os.DirEntry, sourceModelIDDir, schemaPath, tritonModelIDDir string, log logr.Logger, m *triton.ModelServingConfig) error {
+func adaptNativeModelLayout(files []os.DirEntry, sourceModelIDDir, schemaPath, tritonModelIDDir string, log logr.Logger) error {
 	for _, f := range files {
 		var err1 error
 		filename := f.Name()
@@ -266,19 +266,6 @@ func adaptNativeModelLayout(files []os.DirEntry, sourceModelIDDir, schemaPath, t
 				return fmt.Errorf("Error writing config file %s: %w", source, err2)
 			}
 
-			continue
-		}
-
-		if filename == servingConfigFilename {
-			pbtxt, err2 := os.ReadFile(source)
-
-			if err2 != nil {
-				return fmt.Errorf("Error reading serving config file %s: %w", source, err2)
-			}
-
-			if err2 = processModelServingConfig(pbtxt, log, m); err2 != nil {
-				return err2
-			}
 			continue
 		}
 
@@ -398,18 +385,6 @@ func processModelConfig(pbtxtIn []byte, schemaPath string, log logr.Logger) ([]b
 	}
 
 	return pbtxtOut, nil
-}
-
-func processModelServingConfig(pbtxtIn []byte, log logr.Logger, m *triton.ModelServingConfig) error {
-	var err error
-	// parse the pbtxt into a ModelConfig
-
-	if err = prototext.Unmarshal(pbtxtIn, m); err != nil {
-		log.Error(err, "Unable to unmarshal serving-config.pbtxt")
-		// return the input and hope for the best
-	}
-
-	return nil
 }
 
 func allInputsAndOuputsHaveBatchDimension(m *triton.ModelConfig) bool {
