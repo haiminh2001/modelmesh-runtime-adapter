@@ -179,7 +179,7 @@ func TestAdapter(t *testing.T) {
 		ModelId:   "tfmnist",
 		ModelPath: filepath.Join(testdataDir, "tfmnist"),
 		ModelType: "invalid", // this will be ignored
-		ModelKey:  `{"storage_key": "myStorage", "bucket": "bucket1", "disk_size_bytes": 54321, "model_type": {"name": "tensorflow", "version": "1.5"}}`,
+		ModelKey:  `{"storage_key": "myStorage", "bucket": "bucket1", "disk_size_bytes": 54321, "max_concurrency": 10, "model_type": {"name": "tensorflow", "version": "1.5"}}`,
 	})
 
 	if err != nil {
@@ -191,11 +191,10 @@ func TestAdapter(t *testing.T) {
 		t.Errorf("Expected SizeInBytes to be %d but actual value was %d", expectedSize, resp3.SizeInBytes)
 	}
 
-	// TODO: enable this test later
-	// var expectedMaxConcurrency uint32 = 10
-	// if resp3.MaxConcurrency != expectedMaxConcurrency {
-	// 	t.Errorf("Expected MaxConcurrency to be %d but actual value was %d", expectedMaxConcurrency, resp3.MaxConcurrency)
-	// }
+	var expectedMaxConcurrency uint32 = 10
+	if resp3.MaxConcurrency != expectedMaxConcurrency {
+		t.Errorf("Expected MaxConcurrency to be %d but actual value was %d", expectedMaxConcurrency, resp3.MaxConcurrency)
+	}
 
 	t.Logf("runtime status: Model loaded, %v", resp3)
 

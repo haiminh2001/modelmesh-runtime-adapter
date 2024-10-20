@@ -23,9 +23,10 @@ import (
 )
 
 const (
-	modelTypeJSONKey     string = "model_type"
-	schemaPathJSONKey    string = "schema_path"
-	diskSizeBytesJSONKey string = "disk_size_bytes"
+	modelTypeJSONKey      string = "model_type"
+	schemaPathJSONKey     string = "schema_path"
+	diskSizeBytesJSONKey  string = "disk_size_bytes"
+	maxConcurrencyJSONKey string = "max_concurrency"
 )
 
 // GetModelType first tries to read the type from the LoadModelRequest.ModelKey json
@@ -89,4 +90,27 @@ func CalcMemCapacity(reqModelKey string, defaultSize int, multiplier float64, lo
 		}
 	}
 	return size
+}
+
+func GetMaxConcurrency(reqModelKey string, defaultSize int, log logr.Logger) uint32 {
+	// Try to read MaxConcurrency passed in the LoadModelRequest.ModelKey
+	// but first set the default to fall back on if we cannot get the disk max_concurrency.
+	max_concurrency := uint32(defaultSize)
+	var modelKey map[string]interface{}
+	if err := json.Unmarshal([]byte(reqModelKey), &modelKey); err != nil {
+		log.Info("'MaxConcurrency' will be defaulted as LoadModelRequest.ModelKey value is not valid JSON", "MaxConcurrency", max_concurrency, "model_key", reqModelKey, "error", err)
+	} else {
+		if modelKey[maxConcurrencyJSONKey] != nil {
+			overriden_max_concurrency, ok := modelKey[maxConcurrencyJSONKey].(float64)
+			if ok {
+				max_concurrency = uint32(overriden_max_concurrency)
+				log.Info("Setting 'MaxConcurrency' to LoadModelRequest.ModelKey 'max_concurrency' value", "MaxConcurrency", max_concurrency)
+			} else {
+				log.Info("'MaxConcurrency' will be defaulted as LoadModelRequest.ModelKey 'max_concurrency' value is not a number", "MaxConcurrency", max_concurrency, "model_key", modelKey)
+			}
+		} else {
+			log.Info("'MaxConcurrency' will be defaulted as LoadModelRequest.ModelKey did not contain a value for 'MaxConcurrency'", "SizeInBytes", max_concurrency, "model_key", modelKey)
+		}
+	}
+	return max_concurrency
 }

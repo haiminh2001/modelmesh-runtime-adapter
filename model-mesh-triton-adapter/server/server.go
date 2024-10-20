@@ -116,14 +116,9 @@ func (s *TritonAdapterServer) LoadModel(ctx context.Context, req *mmesh.LoadMode
 		return nil, status.Errorf(status.Code(err), "Failed to load Model due to adapter error: %s", err)
 	}
 
-	var size uint64
+	size := util.CalcMemCapacity(req.ModelKey, s.AdapterConfig.DefaultModelSizeInBytes, s.AdapterConfig.ModelSizeMultiplier, log)
 
-	size = util.CalcMemCapacity(req.ModelKey, s.AdapterConfig.DefaultModelSizeInBytes, s.AdapterConfig.ModelSizeMultiplier, log)
-
-	var max_concurrency uint32
-
-	// TODO: get max concurrency from modelKey
-	max_concurrency = uint32(s.AdapterConfig.LimitModelConcurrency)
+	max_concurrency := util.GetMaxConcurrency(req.ModelKey, s.AdapterConfig.LimitModelConcurrency, log)
 
 	_, tritonErr := s.Client.RepositoryModelLoad(ctx, &triton.RepositoryModelLoadRequest{
 		ModelName: req.ModelId,
